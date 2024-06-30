@@ -6,44 +6,6 @@ import mongoose from 'mongoose';
 import User from '@models/user';
 import { BadRequestError, NotFoundError } from '@utils/httpErrors';
 
-// Функция-декоратор для обновления профиля пользователя
-export const updateUserProfile =
-  (updateFn: (userId: mongoose.Types.ObjectId, data: any) => Promise<any>) =>
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { name, about } = req.body;
-    const userId = req.user._id;
-
-    try {
-      const updatedUser = await updateFn(userId, { name, about });
-      res.status(200).json(updatedUser);
-    } catch (error) {
-      if (error instanceof mongoose.Error.ValidationError) {
-        next(BadRequestError('Ошибка валидации'));
-      } else if (error instanceof mongoose.Error.CastError) {
-        next(NotFoundError('Пользователь не найден'));
-      } else {
-        next(error); // Передаём ошибку обработчику ошибок
-      }
-    }
-  };
-
-// Декоратор для обновления аватара пользователя
-export const updateAvatar = async (userId: mongoose.Types.ObjectId, avatar: string) => {
-  return await User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true });
-};
-
-// Декоратор для обновления профиля пользователя
-export const updateProfile = async (
-  userId: mongoose.Types.ObjectId,
-  data: { name: string; about: string },
-) => {
-  return await User.findByIdAndUpdate(
-    userId,
-    { name: data.name, about: data.about },
-    { new: true, runValidators: true },
-  );
-};
-
 // Контроллер для создания пользователя
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -86,6 +48,46 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     res.status(200).json(user);
   } catch (error) {
     next(error);
+  }
+};
+
+// Контроллер для обновления профиля пользователя
+export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { name, about } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, about },
+      { new: true, runValidators: true },
+    ).orFail(NotFoundError('Пользователь не найден'));
+    res.status(200).json(user);
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      next(BadRequestError('Ошибка валидации'));
+    } else {
+      next(error); // Передаём ошибку обработчику ошибок
+    }
+  }
+};
+
+// Контроллер для обновления аватара пользователя
+export const updateAvatar = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { avatar } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { avatar },
+      { new: true, runValidators: true },
+    ).orFail(NotFoundError('Пользователь не найден'));
+    res.status(200).json(user);
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      next(BadRequestError('Ошибка валидации'));
+    } else {
+      next(error); // Передаём ошибку обработчику ошибок
+    }
   }
 };
 
