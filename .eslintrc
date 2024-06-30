@@ -26,6 +26,11 @@
         "js": "never",
         "ts": "never"
       }
-    ]
+    ],
+    "import/no-unresolved": "off",
+    "implicit-arrow-linebreak": "off",
+    "import/prefer-default-export": "off",
+    "indent": "off",
+    "no-underscore-dangle": ["error", { "allow": ["_id"] }]
   }
 }
