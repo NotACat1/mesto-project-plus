@@ -1,8 +1,18 @@
 import express from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
 
-import { createUser, getUserById, getAllUsers, updateAvatar, updateProfile } from '@controllers/user';
-import { createUserValidation, updateAvatarValidation, updateProfileValidation } from '@validations/user';
+import {
+  createUser,
+  getUserById,
+  getAllUsers,
+  updateAvatar,
+  updateProfile,
+} from '@controllers/user';
+import {
+  createUserValidation,
+  updateAvatarValidation,
+  updateProfileValidation,
+} from '@validations/user';
 
 const router = express.Router();
 
