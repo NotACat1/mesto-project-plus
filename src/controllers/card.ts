@@ -1,19 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 
 import Card from '@models/card';
-import CustomError from '@utils/CustomError';
-import { createCardValidation } from '@validations/card';
+import { UnauthorizedError, NotFoundError, BadRequestError } from '@utils/httpErrors';
 
 // Контроллер для создания карточки
 export const createCard = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, link } = req.body;
-
-    // Валидация данных запроса
-    const { error } = createCardValidation.validate({ name, link });
-    if (error) {
-      throw new CustomError('Не удалось выполнить проверку', 400);
-    }
 
     const owner = req.user._id;
 
@@ -27,7 +21,11 @@ export const createCard = async (req: Request, res: Response, next: NextFunction
 
     res.status(201).json(savedCard);
   } catch (error) {
-    next(error);
+    if (error instanceof mongoose.Error.ValidationError) {
+      next(BadRequestError('Ошибка валидации'));
+    } else {
+      next(error); // Передаём ошибку обработчику ошибок
+    }
   }
 };
 
@@ -44,61 +42,61 @@ export const getAllCards = async (req: Request, res: Response, next: NextFunctio
 // Контроллер для удаления карточки по ID
 export const deleteCardById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const cardId = req.params.cardId;
-    const card = await Card.findById(cardId);
-
-    if (!card) {
-      throw new CustomError('Карточка не найдена', 404);
-    }
+    const { cardId } = req.params;
+    const card = await Card.findById(cardId).orFail(NotFoundError('Карточка не найдена'));
 
     if (card.owner.toString() !== req.user._id) {
-      throw new CustomError('Вы не имеете права удалять эту карту', 403);
+      throw UnauthorizedError('Вы не имеете права удалять эту карту');
     }
 
     await card.remove();
 
     res.status(200).json({ message: 'Карточка удалена' });
   } catch (error) {
-    next(error);
+    if (error instanceof mongoose.Error.CastError) {
+      next(NotFoundError('Ошибка валидации'));
+    } else {
+      next(error); // Передаём ошибку обработчику ошибок
+    }
   }
 };
 
 // Контроллер для лайка карточки
 export const likeCard = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const cardId = req.params.cardId;
+    const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
       cardId,
       { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
       { new: true },
-    ).populate('owner likes');
-
-    if (!card) {
-      throw new CustomError('Карточка не найдена', 404);
-    }
+    ).populate('owner likes').orFail(NotFoundError('Карточка не найдена'));
 
     res.status(200).json(card);
   } catch (error) {
-    next(error);
+    if (error instanceof mongoose.Error.CastError) {
+      next(NotFoundError('Ошибка валидации'));
+    } else {
+      next(error); // Передаём ошибку обработчику ошибок
+    }
   }
 };
 
 // Контроллер для удаления лайка с карточки
 export const dislikeCard = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const cardId = req.params.cardId;
+    const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
       cardId,
       { $pull: { likes: req.user._id } }, // убрать _id из массива
       { new: true },
-    ).populate('owner likes');
-
-    if (!card) {
-      throw new CustomError('Карточка не найдена', 404);
-    }
+    ).populate('owner likes').orFail(NotFoundError('Карточка не найдена'));
 
     res.status(200).json(card);
   } catch (error) {
-    next(error);
+    if (error instanceof mongoose.Error.CastError) {
+      next(NotFoundError('Ошибка валидации'));
+    } else {
+      next(error); // Передаём ошибку обработчику ошибок
+    }
   }
 };
