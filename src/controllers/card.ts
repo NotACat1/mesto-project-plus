@@ -23,6 +23,8 @@ export const createCard = async (req: Request, res: Response, next: NextFunction
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
+    } else if (error instanceof mongoose.Error.CastError) {
+      next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
@@ -53,8 +55,10 @@ export const deleteCardById = async (req: Request, res: Response, next: NextFunc
 
     res.status(200).json({ message: 'Карточка удалена' });
   } catch (error) {
-    if (error instanceof mongoose.Error.CastError) {
-      next(NotFoundError('Ошибка валидации'));
+    if (error instanceof mongoose.Error.ValidationError) {
+      next(BadRequestError('Ошибка валидации'));
+    } else if (error instanceof mongoose.Error.CastError) {
+      next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
@@ -73,8 +77,10 @@ export const likeCard = async (req: Request, res: Response, next: NextFunction) 
 
     res.status(200).json(card);
   } catch (error) {
-    if (error instanceof mongoose.Error.CastError) {
-      next(NotFoundError('Ошибка валидации'));
+    if (error instanceof mongoose.Error.ValidationError) {
+      next(BadRequestError('Ошибка валидации'));
+    } else if (error instanceof mongoose.Error.CastError) {
+      next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
@@ -93,8 +99,10 @@ export const dislikeCard = async (req: Request, res: Response, next: NextFunctio
 
     res.status(200).json(card);
   } catch (error) {
-    if (error instanceof mongoose.Error.CastError) {
-      next(NotFoundError('Ошибка валидации'));
+    if (error instanceof mongoose.Error.ValidationError) {
+      next(BadRequestError('Ошибка валидации'));
+    } else if (error instanceof mongoose.Error.CastError) {
+      next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
