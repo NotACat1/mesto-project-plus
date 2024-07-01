@@ -47,7 +47,13 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     const user = await User.findById(userId).orFail(NotFoundError('Пользователь не найден'));
     res.status(200).json(user);
   } catch (error) {
-    next(error);
+    if (error instanceof mongoose.Error.ValidationError) {
+      next(BadRequestError('Ошибка валидации'));
+    } else if (error instanceof mongoose.Error.CastError) {
+      next(BadRequestError('Невалидный ID'));
+    } else {
+      next(error); // Передаём ошибку обработчику ошибок
+    }
   }
 };
 
@@ -65,6 +71,8 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
+    } else if (error instanceof mongoose.Error.CastError) {
+      next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
@@ -85,6 +93,8 @@ export const updateAvatar = async (req: Request, res: Response, next: NextFuncti
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
+    } else if (error instanceof mongoose.Error.CastError) {
+      next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
@@ -122,6 +132,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
+    } else if (error instanceof mongoose.Error.CastError) {
+      next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
