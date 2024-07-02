@@ -2,9 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
+import { constants as http2Constants } from 'http2';
 
 import User from '@models/user';
 import { BadRequestError, NotFoundError } from '@utils/httpErrors';
+
+const { HTTP_STATUS_CREATED, HTTP_STATUS_OK } = http2Constants;
 
 // Контроллер для создания пользователя
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -20,7 +23,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
     const savedUser = await newUser.save();
 
-    res.status(201).json(savedUser);
+    res.status(HTTP_STATUS_CREATED).json(savedUser);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
@@ -34,7 +37,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const users = await User.find();
-    res.status(200).json(users);
+    res.status(HTTP_STATUS_OK).json(users);
   } catch (error) {
     next(error);
   }
@@ -45,11 +48,9 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
   try {
     const { userId } = req.params;
     const user = await User.findById(userId).orFail(NotFoundError('Пользователь не найден'));
-    res.status(200).json(user);
+    res.status(HTTP_STATUS_OK).json(user);
   } catch (error) {
-    if (error instanceof mongoose.Error.ValidationError) {
-      next(BadRequestError('Ошибка валидации'));
-    } else if (error instanceof mongoose.Error.CastError) {
+    if (error instanceof mongoose.Error.CastError) {
       next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
@@ -67,12 +68,10 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
       { name, about },
       { new: true, runValidators: true },
     ).orFail(NotFoundError('Пользователь не найден'));
-    res.status(200).json(user);
+    res.status(HTTP_STATUS_OK).json(user);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
-    } else if (error instanceof mongoose.Error.CastError) {
-      next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
@@ -89,7 +88,7 @@ export const updateAvatar = async (req: Request, res: Response, next: NextFuncti
       { avatar },
       { new: true, runValidators: true },
     ).orFail(NotFoundError('Пользователь не найден'));
-    res.status(200).json(user);
+    res.status(HTTP_STATUS_OK).json(user);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
