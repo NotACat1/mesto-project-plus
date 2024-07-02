@@ -92,8 +92,6 @@ export const updateAvatar = async (req: Request, res: Response, next: NextFuncti
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
-    } else if (error instanceof mongoose.Error.CastError) {
-      next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
