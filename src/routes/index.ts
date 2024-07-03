@@ -1,21 +1,36 @@
 import express from 'express';
+import { celebrate, Segments } from 'celebrate';
 
 import UserRouter from '@routes/user';
 import cardRouter from '@routes/card';
-import CustomError from '@utils/CustomError';
+import { NotFoundError } from '@utils/httpErrors';
 import auth from '@middlewares/auth';
 import { login, createUser } from '@controllers/user';
+import { signinValidation, signupValidation } from '@validations/sign';
 
 const routes = express.Router();
 
-routes.post('/signin', login);
-routes.post('/signup', createUser);
+routes.post(
+  '/signin',
+  celebrate({
+    [Segments.BODY]: signinValidation,
+  }),
+  login,
+);
+routes.post(
+  '/signup',
+  celebrate({
+    [Segments.BODY]: signupValidation,
+  }),
+  createUser,
+);
 
-routes.use('/users', auth, UserRouter);
-routes.use('/cards', auth, cardRouter);
+routes.use(auth);
+routes.use('/users', UserRouter);
+routes.use('/cards', cardRouter);
 
 routes.all('*', (req, res, next) => {
-  next(new CustomError('Неверный адрес запроса', 404));
+  next(NotFoundError('Неверный адрес запроса'));
 });
 
 export default routes;
