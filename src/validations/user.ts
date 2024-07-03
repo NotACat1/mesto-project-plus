@@ -1,10 +1,12 @@
 import Joi from 'joi';
 
+import { avatarValidator } from '@validations/validations';
+
 // Валидация данных для создания профиля
 export const createUserValidation = Joi.object({
   name: Joi.string().min(2).max(30).required(),
   about: Joi.string().min(2).max(200).required(),
-  avatar: Joi.string().required(),
+  avatar: avatarValidator,
 });
 
 // Валидация данных для обновления профиля
@@ -15,7 +17,7 @@ export const updateProfileValidation = Joi.object({
 
 // Валидация данных для обновления аватара
 export const updateAvatarValidation = Joi.object({
-  avatar: Joi.string().required(),
+  avatar: avatarValidator,
 });
 
 // Схема валидации для логина
