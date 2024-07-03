@@ -32,11 +32,11 @@ mongoose
 
 app.use(routes);
 
-// Middleware для обработки ошибок
-app.use(errorHandler);
-
 // Middleware для логирования ошибок
 app.use(errorLogger);
+
+// Middleware для обработки ошибок
+app.use(errorHandler);
 
 // Запуск сервера
 app.listen(PORT, () => {
