@@ -6,6 +6,7 @@ import { BadRequestError } from '@utils/httpErrors';
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  console.log(req.headers)
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer ')) {

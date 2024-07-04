@@ -5,28 +5,39 @@ import mongoose from 'mongoose';
 import { constants as http2Constants } from 'http2';
 
 import User from '@models/user';
-import { BadRequestError, NotFoundError } from '@utils/httpErrors';
+import { BadRequestError, NotFoundError, ConflictError } from '@utils/httpErrors';
+
+const saltRounds = 10; // Количество раундов для генерации соли bcrypt
 
 const { HTTP_STATUS_CREATED, HTTP_STATUS_OK } = http2Constants;
 
 // Контроллер для создания пользователя
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, about, avatar } = req.body;
+    const { name, about, avatar, email, password } = req.body;
+
+    // Хешируем пароль
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Создание пользователя
     const newUser = new User({
       name,
       about,
       avatar,
+      email,
+      password: hashedPassword,
     });
 
-    const savedUser = await newUser.save();
+    await newUser.save();
 
-    res.status(HTTP_STATUS_CREATED).json(savedUser);
+    res.status(HTTP_STATUS_CREATED);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
+    }
+    if ((error as any).code === 11000) {
+      // MongoDB duplicate key error code
+      next(ConflictError('Пользователь с таким email уже существует'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
     }
@@ -105,7 +116,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
   try {
     // Найти пользователя по email
-    const user = await User.findOne({ email }).orFail(NotFoundError('Пользователь не найден'));
+    const user = await User.findOne({ email }).orFail(BadRequestError('Пользователь не найден')).select('+password');
 
     // Если пользователь не найден или пароль неверный, вернуть ошибку 401
     if (!(await bcrypt.compare(password, user.password))) {
