@@ -2,14 +2,14 @@ import express from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
 
 import {
-  createUser,
+//  createUser,
   getUserById,
   getAllUsers,
   updateAvatar,
   updateProfile,
 } from '@controllers/user';
 import {
-  createUserValidation,
+//  createUserValidation,
   updateAvatarValidation,
   updateProfileValidation,
 } from '@validations/user';
@@ -28,13 +28,13 @@ router.get(
   getUserById,
 );
 
-router.post(
-  '/',
-  celebrate({
-    [Segments.BODY]: createUserValidation,
-  }),
-  createUser,
-);
+//  router.post(
+//    '/',
+//    celebrate({
+//      [Segments.BODY]: createUserValidation,
+//    }),
+//    createUser,
+//  );
 
 router.patch(
   '/me',

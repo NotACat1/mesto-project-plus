@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import helmet from 'helmet';
+import { errors } from 'celebrate';
 
 import errorHandler from '@middlewares/errorHandler';
 import { errorLogger, requestLogger } from '@middlewares/logger';
@@ -14,6 +15,9 @@ const app = express();
 
 // Middleware для безопасности заголовков
 app.use(helmet());
+
+// Подключаем middleware для парсинга JSON
+app.use(express.json());
 
 // Middleware для логирования запросов
 app.use(requestLogger);
@@ -34,6 +38,9 @@ app.use(routes);
 
 // Middleware для логирования ошибок
 app.use(errorLogger);
+
+// Обработчик ошибок celebrate для обработки ошибок валидации
+app.use(errors());
 
 // Middleware для обработки ошибок
 app.use(errorHandler);
