@@ -2,14 +2,15 @@ import express from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
 
 import {
-//  createUser,
+  //  createUser,
+  getUserMe,
   getUserById,
   getAllUsers,
   updateAvatar,
   updateProfile,
 } from '@controllers/user';
 import {
-//  createUserValidation,
+  //  createUserValidation,
   updateAvatarValidation,
   updateProfileValidation,
 } from '@validations/user';
@@ -17,6 +18,8 @@ import {
 const router = express.Router();
 
 router.get('/', getAllUsers);
+
+router.get('/me', getUserMe);
 
 router.get(
   '/:userId',
