@@ -1,16 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-import { BadRequestError } from '@utils/httpErrors';
+import { BadRequestError, UnauthorizedError } from '@utils/httpErrors';
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  console.log(req.headers)
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    throw BadRequestError('Для выполнения действия необходима авторизация');
+    throw UnauthorizedError('Для выполнения действия необходима авторизация');
   }
 
   // Получаем токен из заголовка Authorization
@@ -28,7 +27,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     req.user = payload;
     next();
   } catch (error) {
-    next(BadRequestError('Неверный токен авторизации'));
+    next(UnauthorizedError('Неверный токен авторизации'));
   }
 };
 

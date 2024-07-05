@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { constants as http2Constants } from 'http2';
 
 import Card from '@models/card';
-import { UnauthorizedError, NotFoundError, BadRequestError } from '@utils/httpErrors';
+import { UnauthorizedError, NotFoundError, BadRequestError, ForbiddenError } from '@utils/httpErrors';
 
 const { HTTP_STATUS_CREATED, HTTP_STATUS_OK } = http2Constants;
 
@@ -49,7 +49,7 @@ export const deleteCardById = async (req: Request, res: Response, next: NextFunc
     const card = await Card.findById(cardId).orFail(NotFoundError('Карточка не найдена'));
 
     if (card.owner.toString() !== req.user._id) {
-      throw UnauthorizedError('Вы не имеете права удалять эту карту');
+      throw ForbiddenError('Вы не имеете права удалять эту карту');
     }
 
     await card.remove();

@@ -5,7 +5,12 @@ import mongoose from 'mongoose';
 import { constants as http2Constants } from 'http2';
 
 import User from '@models/user';
-import { BadRequestError, NotFoundError, ConflictError } from '@utils/httpErrors';
+import {
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+  UnauthorizedError,
+} from '@utils/httpErrors';
 
 const saltRounds = 10; // Количество раундов для генерации соли bcrypt
 
@@ -30,7 +35,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
     await newUser.save();
 
-    res.status(HTTP_STATUS_CREATED);
+    res.status(HTTP_STATUS_CREATED).send(newUser);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
       next(BadRequestError('Ошибка валидации'));
@@ -116,11 +121,13 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
   try {
     // Найти пользователя по email
-    const user = await User.findOne({ email }).orFail(BadRequestError('Пользователь не найден')).select('+password');
+    const user = await User.findOne({ email })
+      .orFail(UnauthorizedError('Пользователь не авторизован'))
+      .select('+password');
 
     // Если пользователь не найден или пароль неверный, вернуть ошибку 401
     if (!(await bcrypt.compare(password, user.password))) {
-      throw BadRequestError('Неправильные почта или пароль');
+      throw UnauthorizedError('Пользователь не авторизован');
     }
 
     // Создать JWT с сроком на неделю
@@ -144,6 +151,20 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       next(BadRequestError('Невалидный ID'));
     } else {
       next(error); // Передаём ошибку обработчику ошибок
+    }
+  }
+};
+
+export const getUserMe = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId).orFail(NotFoundError('Пользователь не найден'));
+    res.status(HTTP_STATUS_OK).json(user);
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      next(BadRequestError('Невалидный ID'));
+    } else {
+      next(error);
     }
   }
 };
